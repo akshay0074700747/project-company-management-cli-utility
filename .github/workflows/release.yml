@@ -23,7 +23,7 @@ jobs:
         with:
           go-version: stable
       - name: Install AWS CLI
-        uses: aws-actions/aws-cli@v3
+        uses: ItsKarma/aws-cli@v1.70.0
         with:
           aws-version: '1.24.45'  
       - name: Run GoReleaser
