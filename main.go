@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type funcc func()
@@ -18,6 +19,45 @@ var (
 	argMap      = make(map[string]funcc)
 	snapshotKey string
 )
+
+func main() {
+
+	// flag.StringVar(&snapshotKey, "key", "", "unique key for the snapshot")
+	// flag.Parse()
+
+	arguments := os.Args[1:]
+	fmt.Println(arguments)
+	for i, arg := range arguments {
+		if arg == "-key" && i < len(arguments)-1 {
+			snapshotKey = arguments[i+1]
+			break
+		}
+	}
+	flag.CommandLine.Parse(arguments)
+
+	fmt.Println("here is the key", snapshotKey)
+
+	set()
+
+	args := getInput()
+	if len(args) < 2 {
+		fmt.Println("please provide the arguments")
+		os.Exit(1)
+	}
+
+	result := argMap[args[1]]
+	if result == nil {
+		fmt.Println("please provide a valid argument")
+		os.Exit(1)
+	}
+
+	result()
+
+}
+
+func getInput() []string {
+	return os.Args
+}
 
 // for setting mapping the tag with its associated functionality
 func set() {
@@ -91,67 +131,61 @@ func set() {
 		zipWriter := zip.NewWriter(zipFile)
 		defer zipWriter.Close()
 
-		filepath.Walk(currDir, func(path string, info fs.FileInfo, err error) error {
+		excludeDir := filepath.Join(currDir, initDir)
 
+		filepath.Walk(currDir, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
 				fmt.Println("there has been an error", err)
 				return err
 			}
 
-			file, err := os.Open(path)
-			if err != nil {
-				fmt.Println("there has been an error in opening the file", err)
-				return err
+			if path == excludeDir || strings.HasPrefix(path, excludeDir+string(filepath.Separator)) {
+				return nil
 			}
-			defer file.Close()
 
-			relativepath, err := filepath.Rel(currDir, path)
+			relativePath, err := filepath.Rel(currDir, path)
 			if err != nil {
-				fmt.Println("there has been an error in creating the raltive path", err)
+				fmt.Println("there has been an error in creating the relative path", err)
 				return err
 			}
 
-			zipEntry, err := zipWriter.Create(relativepath)
-			if err != nil {
-				fmt.Println("there has been an error in creaating zipEntry", err)
-				return err
-			}
+			// doing this to include the directories as well into the zipped archive
+			var zipEntry io.Writer
+			if info.IsDir() {
+				//
+				zipEntry, err = zipWriter.CreateHeader(&zip.FileHeader{
+					Name:   relativePath + "/",
+					Method: zip.Deflate,
+				})
+				if err != nil {
+					fmt.Println("there has been an error in creating directory header", err)
+					return err
+				}
+			} else {
 
-			_, err = io.Copy(zipEntry, file)
-			if err != nil {
-				fmt.Println("there has been an error in copying the file to the zip", err)
-				return err
+				zipEntry, err = zipWriter.Create(relativePath)
+				if err != nil {
+					fmt.Println("there has been an error in creating zipEntry", err)
+					return err
+				}
+
+				file, err := os.Open(path)
+				if err != nil {
+					fmt.Println("there has been an error in opening the file", err)
+					return err
+				}
+				defer file.Close()
+
+				_, err = io.Copy(zipEntry, file)
+				if err != nil {
+					fmt.Println("there has been an error in copying the file to the zip", err)
+					return err
+				}
 			}
 
 			return nil
 		})
+
 	}
 
-}
-
-func main() {
-
-	flag.StringVar(&snapshotKey, "key", "", "unique key for the snapshot")
-	flag.Parse()
-
-	set()
-
-	args := getInput()
-	if len(args) < 2 {
-		fmt.Println("please provide the arguments")
-		os.Exit(1)
-	}
-
-	result := argMap[args[1]]
-	if result == nil {
-		fmt.Println("please provide a valid argument")
-		os.Exit(1)
-	}
-
-	result()
-
-}
-
-func getInput() []string {
-	return os.Args
 }

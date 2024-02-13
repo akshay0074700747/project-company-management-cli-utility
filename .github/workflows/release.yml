@@ -1,4 +1,3 @@
-
 name: goreleaser
 
 on:
@@ -10,7 +9,6 @@ on:
 
 permissions:
   contents: write
-
 
 jobs:
   goreleaser:
@@ -24,13 +22,22 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: stable
-
+      - name: Install AWS CLI
+        uses: aws-actions/aws-cli@v3
+        with:
+          aws-version: '1.24.45'  
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
           version: ${{ env.GITHUB_REF_NAME }}
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      - name: Upload released artifacts to S3
+        run: |
+          cd ${{ github.workspace }}
+
+          aws s3 cp goreleaser/artifacts/*.tar.gz s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }} \
+            --access-key-id ${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --secret-access-key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
