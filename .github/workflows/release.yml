@@ -24,9 +24,9 @@ jobs:
           go-version: stable
       - name: Install AWS CLI
         run: |
-          curl -L https://dl.amazonaws.com/aws-cli/AWSCLI-${{ github.event.repository.os }}-amd64-latest.zip > aws-cli.zip
-          unzip aws-cli.zip
-          sudo mv aws-cli/aws /usr/local/bin/
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
