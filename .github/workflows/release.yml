@@ -23,7 +23,10 @@ jobs:
         with:
           go-version: stable
       - name: Install AWS CLI
-        uses: ItsKarma/aws-cli@v1.70.0
+        run: |
+          curl -L https://dl.amazonaws.com/aws-cli/AWSCLI-${{ github.event.repository.os }}-amd64-latest.zip > aws-cli.zip
+          unzip aws-cli.zip
+          sudo mv aws-cli/aws /usr/local/bin/
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
