@@ -38,7 +38,7 @@ jobs:
       - name: Upload released artifacts to S3
         run: |
           cd ${{ github.workspace }}
-          aws s3 cp goreleaser/artifacts/*.tar.gz s3://project-and-company-management-cli-utitlity-tracker
+          aws s3 cp goreleaser/artifacts s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
