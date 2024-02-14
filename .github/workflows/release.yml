@@ -44,6 +44,7 @@ jobs:
       - name: Copy to S3
         run: |
           cd ${{ github.workspace }}
+          ls
           aws s3 sync goreleaser/artifacts s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }}
       # - name: Upload released artifacts to S3
       #   run: |
