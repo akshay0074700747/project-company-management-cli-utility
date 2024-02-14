@@ -30,15 +30,23 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
-      - name: Upload released artifacts to S3
-        run: |
-          cd ${{ github.workspace }}
-          aws s3 cp goreleaser/artifacts s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # - name: Install AWS CLI
+      #   run: |
+      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #     unzip awscliv2.zip
+      #     sudo ./aws/install --update
+      - name: Set aws Credentials
+        uses: aws-actions/configure-aws-credentails@v1
+        with:
+          aws-access-key-id:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+      - name: Copy to S3
+        run: aws s3 sync ./goreleaser/artifacts s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }}
+      # - name: Upload released artifacts to S3
+      #   run: |
+      #     cd ${{ github.workspace }}
+      #     aws s3 cp goreleaser/artifacts s3://project-and-company-management-cli-utitlity-tracker/releases/${{ env.GITHUB_REF_NAME }}
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
