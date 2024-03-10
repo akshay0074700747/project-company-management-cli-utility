@@ -38,6 +38,10 @@ type SetUserCredentials struct {
 	Name  string `json:"name"`
 }
 
+type GetSnapshot struct {
+	Snap []byte `json:"snap"`
+}
+
 // type RemoteProgress struct {
 // 	Email           string        `json:"email"`
 // 	ProjectID       string        `json:"project_id"`
@@ -63,6 +67,7 @@ var (
 	setName             string
 	userCreds           = ".manager.json"
 	isStaged            string
+	commitID            string
 )
 
 func main() {
@@ -91,6 +96,9 @@ func main() {
 		}
 		if arg == "-stage" && i < len(arguments)-1 {
 			isStaged = "true"
+		}
+		if arg == "-commitID" && i < len(arguments)-1 {
+			commitID = arguments[i+1]
 		}
 	}
 	flag.CommandLine.Parse(arguments)
@@ -494,5 +502,69 @@ func set() {
 
 		fmt.Println("pushing completed successfully...")
 	}
+
+	argMap["pull"] = func() {
+
+		if commitID == "" {
+			fmt.Println("The commitID cannot be empty...")
+			return
+		}
+
+		url := fmt.Sprintf("http://localhost:50000/snapshots/pull?commitID=%s", commitID)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var result GetSnapshot
+		if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		zipReader, err := zip.NewReader(bytes.NewReader(result.Snap), int64(len(result.Snap)))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		for _, file := range zipReader.File {
+			filePath := filepath.Join(".", file.Name)
+
+			if file.FileInfo().IsDir() {
+
+				if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+					fmt.Println(err)
+					return
+				}
+			} else {
+
+				outputFile, err := os.Create(filePath)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				defer outputFile.Close()
+
+				fileReader, err := file.Open()
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				defer fileReader.Close()
+
+				if _, err := io.Copy(outputFile, fileReader); err != nil {
+					fmt.Println(err)
+					return
+				}
+			}
+		}
+
+	}
+
+	fmt.Println("Successfully pulled the Snapshot from the remote repository")
 
 }
