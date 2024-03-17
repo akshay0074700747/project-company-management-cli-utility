@@ -232,6 +232,7 @@ func set() {
 		defer zipWriter.Close()
 
 		excludeDir := filepath.Join(currDir, initDir)
+		excludeGit := filepath.Join(currDir, ".git")
 
 		filepath.Walk(currDir, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
@@ -239,7 +240,7 @@ func set() {
 				return err
 			}
 
-			if path == excludeDir || strings.HasPrefix(path, excludeDir+string(filepath.Separator)) {
+			if path == excludeDir || strings.HasPrefix(path, excludeDir+string(filepath.Separator)) || path == excludeGit || strings.HasPrefix(path, excludeGit+string(filepath.Separator)) {
 				return nil
 			}
 
@@ -550,7 +551,12 @@ func set() {
 				defer outputFile.Close()
 
 				fileReader, err := file.Open()
+
 				if err != nil {
+					if err == fs.ErrPermission || err == os.ErrPermission {
+						fmt.Println("permission Denied!!!")
+						continue
+					}
 					fmt.Println(err)
 					return
 				}
@@ -563,8 +569,8 @@ func set() {
 			}
 		}
 
-	}
+		fmt.Println("Successfully pulled the Snapshot from the remote repository")
 
-	fmt.Println("Successfully pulled the Snapshot from the remote repository")
+	}
 
 }
