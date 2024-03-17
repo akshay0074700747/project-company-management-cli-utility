@@ -484,10 +484,10 @@ func set() {
 			fmt.Println("failed to create HTTP request:", err)
 			return
 		}
- 
+
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req)            
 		if err != nil {
 			fmt.Println("failed to send HTTP request:", err)
 			return
