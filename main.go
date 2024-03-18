@@ -68,6 +68,7 @@ var (
 	userCreds           = ".manager.json"
 	isStaged            string
 	commitID            string
+	ignoreManager       = "manager"
 )
 
 func main() {
@@ -233,6 +234,7 @@ func set() {
 
 		excludeDir := filepath.Join(currDir, initDir)
 		excludeGit := filepath.Join(currDir, ".git")
+		excludeManager := filepath.Join(currDir, ignoreManager)
 
 		filepath.Walk(currDir, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
@@ -263,6 +265,10 @@ func set() {
 					return err
 				}
 			} else {
+
+				if excludeManager == path {
+					return nil
+				}
 
 				zipEntry, err = zipWriter.Create(relativePath)
 				if err != nil {
@@ -479,21 +485,23 @@ func set() {
 			return
 		}
 
-		req, err := http.NewRequest("POST", "http://localhost:50000/snapshots/push", &buf)
-		if err != nil {
-			fmt.Println("failed to create HTTP request:", err)
-			return
-		}
+		resp, err := http.Post("http://localhost:50000/snapshots/push", writer.FormDataContentType(), &buf)
 
-		req.Header.Set("Content-Type", writer.FormDataContentType())
+		// req, err := http.NewRequest("POST", "http://localhost:50000/snapshots/push", &buf)
+		// if err != nil {
+		// 	fmt.Println("failed to create HTTP request:", err)
+		// 	return
+		// }
 
-		resp, err := http.DefaultClient.Do(req)            
+		// req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		fmt.Println("pushiinggg")
 		if err != nil {
 			fmt.Println("failed to send HTTP request:", err)
 			return
 		}
 		defer resp.Body.Close()
-
+		fmt.Println("pushed...")
 		if resp.StatusCode != http.StatusOK {
 			fmt.Println("unexpected response status code:", resp.StatusCode)
 			return
