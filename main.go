@@ -494,7 +494,7 @@ func set() {
 		// }
 
 		// req.Header.Set("Content-Type", writer.FormDataContentType())
-
+    
 		fmt.Println("pushiinggg")
 		if err != nil {
 			fmt.Println("failed to send HTTP request:", err)
