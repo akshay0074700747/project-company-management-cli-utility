@@ -485,7 +485,7 @@ func set() {
 			return
 		}
 
-		resp, err := http.Post("http://localhost:50000/snapshots/push", writer.FormDataContentType(), &buf)
+		resp, err := http.Post("https://akdigitalsolutions.shop/snapshots/push", writer.FormDataContentType(), &buf)
 
 		// req, err := http.NewRequest("POST", "http://localhost:50000/snapshots/push", &buf)
 		// if err != nil {
@@ -494,7 +494,7 @@ func set() {
 		// }
 
 		// req.Header.Set("Content-Type", writer.FormDataContentType())
-    
+
 		fmt.Println("pushiinggg")
 		if err != nil {
 			fmt.Println("failed to send HTTP request:", err)
@@ -519,7 +519,7 @@ func set() {
 			return
 		}
 
-		url := fmt.Sprintf("http://localhost:50000/snapshots/pull?commitID=%s", commitID)
+		url := fmt.Sprintf("https://akdigitalsolutions.shop/snapshots/pull?commitID=%s", commitID)
 
 		resp, err := http.Get(url)
 		if err != nil {
